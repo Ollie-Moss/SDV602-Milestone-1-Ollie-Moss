@@ -1,0 +1,19 @@
+# INSTALLING A VIRTUAL ENVIRONMENT VENV
+$ python -m venv venv
+
+$ source venv/Scripts/activate
+(venv) 
+$
+
+#USING PIP to install a module
+(venv)
+$ pip install PySimpleGUI
+Collecting PySimpleGUI
+  Using cached PySimpleGUI-4.60.5-py3-none-any.whl (512 kB)
+Installing collected packages: PySimpleGUI
+Successfully installed PySimpleGUI-4.60.5
+WARNING: You are using pip version 21.1.3; however, version 23.1.2 is available.
+You should consider upgrading via the 'c:\users\todd.cochrane\onedrive - nmit\bit\2023\sdv602\course material\lab examples\week 1\simplegame\venv\scripts\python.exe -m pip install --upgrade pip' command.
+(venv) 
+/Week 1/Simplegame
+$
