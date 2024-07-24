@@ -2,6 +2,7 @@
 A comment describing the game module
 """
 import PySimpleGUI as sg
+import command_parser as cm
 
 # Brief comment about how the following lines work
 game_state = 'Forest'
@@ -75,10 +76,10 @@ def make_a_window():
             [prompt_input, buttons], 
             element_justification='r'
             )
-    layout = [[sg.Image(r'../imgs/forest.png',size=(100,100),key="-IMG-"), sg.Text(show_current_place(),size=(100,4), font='Any 12', key='-OUTPUT-')],
+    layout = [[sg.Image(r'../imgs/forest.png', subsample=3, size=(600,300),key="-IMG-"), sg.Text(show_current_place(),size=(100,4), font='Any 12', key='-OUTPUT-')],
               [command_col]]
 
-    return  sg.Window('Adventure Game', layout, size=(320,200))
+    return  sg.Window('Adventure Game', layout, size=(1366,768))
     
 
 if __name__ == "__main__":
@@ -94,6 +95,8 @@ if __name__ == "__main__":
         event, values = window.read()
         print(event)
         if event ==  'Enter': 
+                cm.parse_command(values['-IN-']);
+
                 if 'North'.lower() in values['-IN-'].lower():
                     current_story = game_play('North')
                     window['-OUTPUT-'].update(current_story)
@@ -101,7 +104,7 @@ if __name__ == "__main__":
                     current_story = game_play('South')
                     window['-OUTPUT-'].update(current_story)
                 
-                window['-IMG-'].update(game_places[game_state]['Image'],size=(100,100))
+                window['-IMG-'].update(game_places[game_state]['Image'], subsample=3, size=(600,300))
                 pass
         elif event == 'Exit' or event is None or event == sg.WIN_CLOSED:
                 break
