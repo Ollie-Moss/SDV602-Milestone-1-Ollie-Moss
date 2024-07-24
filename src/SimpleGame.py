@@ -8,17 +8,17 @@ game_state = 'Forest'
 game_places = {'Forest':{'Story':'You are in the forest.\nTo the north is a cave.\nTo the south is a castle',
                         'North':'Cave',
                         'South':'Castle',
-                        'Image':'forest.png'
+                        'Image':'../imgs/forest.png'
                          },
               'Cave':{'Story':'You are at the cave.\nTo the south is forest.',
                         'North':'',
                         'South':'Forest',
-                        'Image':'forest_circle.png'
+                        'Image':'../imgs/forest_circle.png'
                       },
               'Castle':{'Story':'You are at the castle.\nTo the north is forest.',
                         'North':'Forest',
                         'South':'',
-                        'Image':'frog.png'},
+                        'Image':'../imgs/frog.png'},
                 }
 
 def show_current_place():
@@ -75,7 +75,7 @@ def make_a_window():
             [prompt_input, buttons], 
             element_justification='r'
             )
-    layout = [[sg.Image(r'forest.png',size=(100,100),key="-IMG-"), sg.Text(show_current_place(),size=(100,4), font='Any 12', key='-OUTPUT-')],
+    layout = [[sg.Image(r'../imgs/forest.png',size=(100,100),key="-IMG-"), sg.Text(show_current_place(),size=(100,4), font='Any 12', key='-OUTPUT-')],
               [command_col]]
 
     return  sg.Window('Adventure Game', layout, size=(320,200))
