@@ -2,7 +2,7 @@
 A comment describing the game module
 """
 import PySimpleGUI as sg
-import command_parser as cm
+from command_parser import *
 from status import *
 
 # Brief comment about how the following lines work
@@ -78,8 +78,10 @@ def make_a_window():
         [prompt_input, buttons],
         element_justification='r'
     )
-    layout = [[sg.Image(r'../imgs/forest.png', subsample=3, size=(600, 300), key="-IMG-"), sg.Text(show_current_place(), size=(100, 4), font='Any 12', key='-OUTPUT-')],
+    layout = [[sg.Image(r'../imgs/forest.png', subsample=3, size=(600, 300), key="-IMG-"), 
+               sg.Text(f"{game.getCurrentLocation().story}", size=(100, 10), font='Any 12', key='-STORY-')],
               [sg.Text("", size=(100, 4), font="Any 12", key='-INV-')],
+              [sg.Text(f"x: {game.player.x} y: {game.player.y}", size=(100, 4), font="Any 12", key='-PLAYERSTATS-')],
               [command_col]]
 
     return sg.Window('Adventure Game', layout, size=(1366, 768))
@@ -97,9 +99,8 @@ if __name__ == "__main__":
         event, values = window.read()
         print(event)
         if event == 'Enter':
-            result = cm.parse_command(values['-IN-'])
-            sg.popup(result)
-
+            result = parse_command(values['-IN-'])
+            result(window)
 
             window['-IMG-'].update(game_places[game_state]
                                    ['Image'], subsample=3, size=(600, 300))
