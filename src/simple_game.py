@@ -3,58 +3,6 @@ A comment describing the game module
 """
 import PySimpleGUI as sg
 from command_parser import *
-from status import *
-
-# Brief comment about how the following lines work
-game_state = 'Forest'
-game_places = {'Forest': {'Story': 'You are in the forest.\nTo the north is a cave.\nTo the south is a castle',
-                          'North': 'Cave',
-                          'South': 'Castle',
-                          'Image': '../imgs/forest.png'
-                          },
-               'Cave': {'Story': 'You are at the cave.\nTo the south is forest.',
-                        'North': '',
-                        'South': 'Forest',
-                        'Image': '../imgs/forest_circle.png'
-                        },
-               'Castle': {'Story': 'You are at the castle.\nTo the north is forest.',
-                          'North': 'Forest',
-                          'South': '',
-                          'Image': '../imgs/frog.png'},
-               }
-
-
-def show_current_place():
-    """Gets the story at the game_state place
-
-    Returns:
-        string: the story at the current place
-    """
-    global game_state
-
-    return game_places[game_state]['Story']
-
-
-def game_play(direction):
-    """
-    Runs the game_play
-
-    Args:
-        direction string: _North or South
-
-    Returns:
-        string: the story at the current place
-    """
-    global game_state
-
-    if direction.lower() in 'northsouth':  # is this a nasty check?
-        game_place = game_places[game_state]
-        proposed_state = game_place[direction]
-        if proposed_state == '':
-            return 'You can not go that way.\n'+game_places[game_state]['Story']
-        else:
-            game_state = proposed_state
-            return game_places[game_state]['Story']
 
 
 def make_a_window():
@@ -78,11 +26,12 @@ def make_a_window():
         [prompt_input, buttons],
         element_justification='r'
     )
-    layout = [[sg.Image(r'../imgs/forest.png', subsample=3, size=(600, 300), key="-IMG-"), 
-               sg.Text(f"{game.getCurrentLocation().story}", size=(100, 10), font='Any 12', key='-STORY-')],
-              [sg.Text("", size=(100, 4), font="Any 12", key='-INV-')],
-              [sg.Text(f"x: {game.player.x} y: {game.player.y}", size=(100, 4), font="Any 12", key='-PLAYERSTATS-')],
-              [command_col]]
+    layout = [
+        [sg.Text(f"{game.getCurrentLocation().story}", size=(
+            100, 10), font='Any 12', key='-STORY-')],
+        [sg.Text("", size=(100, 4), font="Any 12", key='-INV-')],
+        [sg.Text(f"", size=(100, 4), font="Any 12", key='-PLAYERSTATS-')],
+        [command_col]]
 
     return sg.Window('Adventure Game', layout, size=(1366, 768))
 
@@ -100,10 +49,9 @@ if __name__ == "__main__":
         print(event)
         if event == 'Enter':
             result = parse_command(values['-IN-'])
-            result(window)
+            if (callable(result)):
+                result(window)
 
-            window['-IMG-'].update(game_places[game_state]
-                                   ['Image'], subsample=3, size=(600, 300))
             pass
         elif event == 'Exit' or event is None or event == sg.WIN_CLOSED:
             break

@@ -5,8 +5,6 @@ class entity:
         self.health = health
         self.heldItem = None
         self.inventory = inventory
-        self.x = 0
-        self.y = 0
 
     def take_damage(self, dmg):
         self.health -= dmg
@@ -21,10 +19,4 @@ class entity:
     def equipItem(self, item):
         item = self.inventory.items[self.inventory.find_item(item)]
         item.equip(item, self)
-        
-
-    def move(self, direction = [0, 0], step = 1):
-        self.x += direction[0] * step
-        self.y += direction[1] * step
-
 

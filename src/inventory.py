@@ -1,15 +1,17 @@
 class Item:
-    def __init__(self, name, itemType, stats, use = print("No use callback"), equip = print("No equip callback")):
+    def __init__(self, name, itemType, stats, use=print("No use callback"), equip=print("No equip callback")):
         self.name = name
         self.itemType = itemType
         self.stats = stats
         self.use = use
         self.equip = equip
 
+
 class InventoryItem(Item):
-    def __init__(self, item, quantity):
+    def __init__(self, item, quantity=1):
         super().__init__(item.name, item.itemType, item.stats, item.use, item.equip)
         self.quantity = quantity
+
 
 class Inventory:
     def __init__(self, items):
@@ -22,7 +24,7 @@ class Inventory:
         if self.find_item(item) == -1:
             self.items.append(InventoryItem(item, quantity))
         else:
-            self.items[self.find_item(item)].quantity += quantity 
+            self.items[self.find_item(item)].quantity += quantity
 
     def remove_item(self, item):
         if self.find_item(item) == -1:
@@ -40,4 +42,7 @@ class Inventory:
         for item in self.items:
             result += f"{item.name} x{item.quantity}\n"
         return result
-    
+
+
+
+
