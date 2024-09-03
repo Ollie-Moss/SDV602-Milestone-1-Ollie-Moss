@@ -15,8 +15,8 @@ def make_a_window():
 
     sg.theme('Dark Blue 3')  # please make your windows
     prompt_input = [
-        sg.Text('Enter your command', font='Any 14'),
-        sg.Input(key='-IN-', size=(20, 1), font='Any 14')
+        sg.Text('Enter your command', font='Any 12'),
+        sg.Input(key='-IN-', size=(20, 1), font='Any 12')
     ]
     buttons = [
         sg.Button('Enter',  bind_return_key=True),
@@ -26,14 +26,23 @@ def make_a_window():
         [prompt_input, buttons],
         element_justification='r'
     )
+
+    commands = [list(map(lambda command: sg.Text(f"{command}", font="Any 12", background_color="#FFFFFF", text_color="#000000"),
+                   game.getCurrentLocation().commands.keys()))]
+
     layout = [
-        [sg.Text(f"{game.getCurrentLocation().story}", size=(
-            100, 10), font='Any 12', key='-STORY-')],
-        [sg.Text("", size=(100, 4), font="Any 12", key='-INV-')],
-        [sg.Text(f"", size=(100, 4), font="Any 12", key='-PLAYERSTATS-')],
+        [sg.Text("Story:", font="Any 12")],
+        [sg.Text(f"{game.getCurrentLocation().story}",
+                 size=(100, 5), font='Any 12', key='-STORY-')],
+        [sg.Text("Output:", font="Any 12")],
+        [sg.Text("",
+                 size=(100, 4), background_color="#FFFFFF", text_color="#000000", font="Any 12", key='-RESULT-')],
+        [sg.Text("", size=(100, 4), font="Any 12", key='-PLAYERSTATS-')],
+        [sg.Text("Available Commands:", font="Any 12")],
+        [sg.Column(layout=commands, key="-COMMANDS-")],
         [command_col]]
 
-    return sg.Window('Adventure Game', layout, size=(1366, 768))
+    return sg.Window('Adventure Game', layout, size=(500, 500))
 
 
 if __name__ == "__main__":

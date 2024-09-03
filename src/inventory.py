@@ -1,5 +1,5 @@
 class Item:
-    def __init__(self, name, itemType, stats, use=print("No use callback"), equip=print("No equip callback")):
+    def __init__(self, name, itemType, stats, use=lambda: "No use callback", equip=lambda: "No equip callback"):
         self.name = name
         self.itemType = itemType
         self.stats = stats
@@ -26,10 +26,17 @@ class Inventory:
         else:
             self.items[self.find_item(item)].quantity += quantity
 
-    def remove_item(self, item):
-        if self.find_item(item) == -1:
+    def remove_item(self, item, quantity):
+        itemIndex = self.find_item(item)
+
+        if itemIndex == -1:
             return
-        del self.items[self.find_item(item)]
+
+        self.items[itemIndex].quantity -= quantity
+        print(self.items[itemIndex].quantity)
+
+        if self.items[itemIndex].quantity < 1:
+            del self.items[self.find_item(item)]
 
     def find_item(self, item):
         for index, heldItem in enumerate(self.items):

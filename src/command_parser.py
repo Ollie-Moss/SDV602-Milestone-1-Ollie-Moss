@@ -1,6 +1,5 @@
 import PySimpleGUI as sg
-from status import *
-
+from model import *
 
 def parse_command(command):
     command = command.lower().split(' ')
