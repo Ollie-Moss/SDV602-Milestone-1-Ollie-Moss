@@ -3,9 +3,8 @@ from inventory import *
 from command_parser import *
 import random
 
-# Comes from https://stackoverflow.com/questions/6760685/what-is-the-best-way-of-implementing-singleton-in-python
-
-
+# Decorator class comes from 
+# https://stackoverflow.com/questions/6760685/what-is-the-best-way-of-implementing-singleton-in-python
 def singleton(class_):
     instances = {}
 
@@ -49,7 +48,7 @@ def equipCallback(item, entity):
             item, entity, consumed=False, increased=False)
         return f"Unequipped {item.name}!\n" + stats
 
-    if len(list(filter(lambda invItem: invItem.itemType == item.itemType and invItem.equipped, game.player.inventory))) > 0:
+    if len(list(filter(lambda invItem: invItem.itemType == item.itemType and invItem.equipped, game.player.inventory.items))) > 0:
         return f"You already have an item of this type equipped!"
 
     stats = useStatIncreaseCallback(item, entity, consumed=False)
@@ -77,12 +76,12 @@ def useStatIncreaseCallback(item, entity, consumed=True, increased=True):
 
 # ---- Weapons ----
 
-sword = Item("sword", "weapon", {"damage": 3000}, equip=equipCallback)
+sword = Item("sword", "weapon", {"damage": 30}, equip=equipCallback)
 poison_tipped_sword = Item("poison-tipped-sword",
                            "weapon", {"damage": 100}, equip=equipCallback)
 
 # ---- Armor ----
-shield = Item("Shield", "armor", {"defense": 20}, equip=equipCallback)
+shield = Item("shield", "armor", {"defense": 20}, equip=equipCallback)
 
 helmet = Item("helmet", "chest-piece", {"defense": 35}, equip=equipCallback)
 chestplate = Item("chestplate", "chest-piece",
@@ -92,13 +91,13 @@ chestplate = Item("chestplate", "chest-piece",
 
 # Potions
 health_potion = Item("health-potion", "potion",
-                     {"health": 50}, use=useStatIncreaseCallback)
+                     {"health": 10}, use=useStatIncreaseCallback)
 strength_potion = Item("strength-potion", "potion",
                        {"damage": 25}, use=useStatIncreaseCallback)
 
 # Food
 bread_loaf = Item("bread-loaf", "food",
-                  {"health": 30}, use=useStatIncreaseCallback)
+                  {"health": 5}, use=useStatIncreaseCallback)
 
 
 def keyCallback(item, entity):
@@ -162,8 +161,18 @@ def handle_inventory(args):
 
 def handle_stats(args):
     result = ""
-    for stat, value in player.stats.items():
-        result += f"{stat}: {value}\n"
+    if args:
+        itemIndex = game.player.inventory.find_item(args)
+        if itemIndex > -1:
+            item = game.player.inventory.items[itemIndex]
+            result += f"Stats for {item.name.title()}\n"
+            for stat, value in item.stats.items():
+                result += f"{stat.title()}: {value}\n"
+            return lambda window: window['-RESULT-'].update(result)
+
+    result = f"Stats for {game.player.name}\n"
+    for stat, value in game.player.stats.items():
+        result += f"{stat.title()}: {value}\n"
     return lambda window: window['-RESULT-'].update(result)
 
 
@@ -204,7 +213,7 @@ def handle_attack(args):
         result = f"You have defeated {enemy.name}!\n"
         # Award Drops
         if len(enemy.drops) > 0:
-            result += "You have been awarded:"
+            result += "You have been awarded:\n"
             for drop in enemy.drops:
                 game.player.inventory.add_item(drop)
                 result += f"{drop.name} x{drop.quantity}"
@@ -238,17 +247,19 @@ def handle_explore(args):
         game.player.inventory.add_item(item)
         game.getCurrentLocation().items.remove(item)
         result += f"You have found {item.name}!\n"
+    else:
+        result += f"There is nothing more to be found!\n"
 
     # Show monsters
     if len(game.getCurrentLocation().entities) > 0:
-        result += "There are some monsters:"
+        result += "There are some monsters:\n"
         result += ''.join(
             f"{enemy.name.title()}\n" for enemy in game.getCurrentLocation().entities)
 
     # Show moveable directions
     result += "It seems I can move in these directions:\n"
     result += ''.join(f"{direction.title()} leads to {location.title()}\n" if direction not in game.getCurrentLocation(
-    ).locked else f"{direction.title()} is being guarded but leads to {location.title()}!\n" for direction, location in game.getCurrentLocation().neighbours.items())
+    ).locked or len(game.getCurrentLocation().entities) <= 0 else f"{direction.title()} is being guarded but leads to {location.title()}!\n" for direction, location in game.getCurrentLocation().neighbours.items())
 
     return lambda window: window['-RESULT-'].update(result)
 
@@ -262,13 +273,13 @@ non_fighting_commands = {
         "callback": handle_fight,
         "help": "fight [monster]"
     },
+    "explore": {
+        "callback": handle_explore,
+        "help": "explore"
+    },
 }
 
 basic_commands = {
-    "fight": {
-        "callback": handle_fight,
-        "help": "fight [monster]"
-    },
     "use": {
         "callback": handle_use,
         "help": "fight [monster]"
@@ -285,10 +296,6 @@ basic_commands = {
         "callback": handle_stats,
         "help": "stats or stats [item]"
     },
-    "explore": {
-        "callback": handle_explore,
-        "help": "explore"
-    },
 }
 
 fight_commands = {
@@ -296,7 +303,7 @@ fight_commands = {
         "callback": handle_attack,
         "help": "attack"
     },
-    "stats": {
+    "run": {
         "callback": handle_run,
         "help": "run"
     },
@@ -312,8 +319,7 @@ def startGame():
     gameMap = {
         "start": Location(story="Your goal is to save the princess!\nShe is being held in the evil vampire's castle.\nYou must find her, start by exploring you might find something!",
                           commands={**non_fighting_commands, **basic_commands},
-                          items=[InventoryItem(sword), InventoryItem(bread_loaf, 2)],
-                          locked=["north"],
+                          items=[InventoryItem(sword), InventoryItem(bread_loaf, 4)],
                           neighbours={"north": "forest"}),
         "forest": Location("This forest seems dense\n It feels like there are eyes everywhere!",
                            commands={**non_fighting_commands,
@@ -358,4 +364,5 @@ def startGame():
         [])
     player = entity(200, playerInv, name="player")
     game.player = player
+    game.currentLocation = "start"
     game.map = gameMap

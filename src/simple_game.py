@@ -38,7 +38,8 @@ def make_a_window():
         [sg.Text("",
                  size=(100, 7), background_color="#FFFFFF", text_color="#000000", font="Any 12", key='-RESULT-')],
         [sg.Text("", size=(100, 4), font="Any 12", key='-PLAYERSTATS-')],
-        [sg.Text("Available Commands:", font="Any 12"), sg.Text("Type help after any command to see how to use it!")],
+        [sg.Text("Available Commands:", font="Any 12"), sg.Text(
+            "Type help after any command to see how to use it!")],
         [sg.Text(commands, font="Any 12", background_color="#FFFFFF",
                  text_color="#000000", key="-COMMANDS-")],
         [command_col]]
@@ -46,8 +47,14 @@ def make_a_window():
     return sg.Window('Adventure Game', layout, size=(700, 600))
 
 
-def resetWindow(window):
-    pass
+def restartGame(window):
+    startGame()
+
+    window['-STORY-'].update(game.getCurrentLocation().story)
+    window['-RESULT-'].update("You have died!\nYou have to save the princess this time!")
+    commands = ''.join(
+        f"{command} " for command in game.getCurrentLocation().commands.keys())
+    window['-COMMANDS-'].update(commands)
 
 
 if __name__ == "__main__":
@@ -73,9 +80,7 @@ if __name__ == "__main__":
             window['-COMMANDS-'].update(commands)
 
             if result == "RESTART":
-                game = startGame()
-                resetWindow(window)
-
+                restartGame(window)
 
             pass
         elif event == 'Exit' or event is None or event == sg.WIN_CLOSED:

@@ -49,7 +49,8 @@ class Inventory:
         result = ""
         for item in self.items:
             result += f"{item.name} x{item.quantity} {('Equipped' if item.equipped else 'Not Equipped!') if item.equip else ''}\n"
-        return result
+
+        return "There is nothing in your inventory!" if result == "" else result
 
 
 
