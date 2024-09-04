@@ -30,7 +30,7 @@ class GameManager:
 
 
 class Location:
-    def __init__(self, story, entities=[], commands={}, neighbours={}, locked=[]):
+    def __init__(self, story, entities=[], items=[], commands={}, neighbours={}, locked=[]):
         self.story = story
         self.items = items
         self.entities = entities
@@ -42,20 +42,29 @@ class Location:
 
 
 def equipCallback(item, entity):
-    if entity.heldItem == item:
-        return f"Item is already equipped!"
+    if item.equipped:
+        item.equipped = False
+        useStatIncreaseCallback(item, entity, consumed=False, increased=False)
+        return f"Unequipped {item.name}!"
 
-    entity.heldItem = item
-    return f"Equipped {item.name}"
+    useStatIncreaseCallback(item, entity, consumed=False)
+    return f"Equipped {item.name}!"
 
 
-def useStatIncreaseCallback(item, entity):
+def useStatIncreaseCallback(item, entity, consumed=True, increased=True):
     result = ""
-    result += f"Used {item.name}!\n"
+    if consumed:
+        result += f"Used {item.name}!\n"
     for stat, value in item.stats.items():
-        entity.stats[stat] += item.stats[stat]
-        result += f"{stat.title()} increased by {item.stats[stat]}\n"
-    entity.inventory.remove_item(item.name, 1)
+        if increased:
+            entity.stats[stat] += item.stats[stat]
+            result += f"{stat.title()} increased by {item.stats[stat]}\n"
+        else:
+            entity.stats[stat] -= item.stats[stat]
+            result += f"{stat.title()} decreased by {item.stats[stat]}\n"
+
+    if consumed:
+        entity.inventory.remove_item(item.name, 1)
 
     return result
 
@@ -70,13 +79,14 @@ poison_tipped_sword = Item("poison-tipped-sword",
 shield = Item("Shield", "armor", {"defense": 20})
 
 helmet = Item("helmet", "chest-piece", {"defense": 35})
-chestplaye = Item("chestplate", "chest-piece", {"defense": 40})
+chestplate = Item("chestplate", "chest-piece", {"defense": 40})
 
 # ---- Buff/De-Buffs ----
 
 # Potions
 health_potion = Item("health-potion", "potion",
                      {"health": 50}, use=useStatIncreaseCallback)
+strength_potion = Item("strength-potion", "potion", {"damage": 25}, use=useStatIncreaseCallback)
 
 # Food
 grapes = Item("grapes", "food", {"health": 25}, use=useStatIncreaseCallback)
@@ -87,18 +97,19 @@ bread_loaf = Item("bread-loaf", "food",
 
 goblin = entity(50, None, name="goblin")
 zombie = entity(75, None, name="zombie")
-guard = entity(100, None, name="guard")
-vampire = entity(200, None, name="vampire")
+guard = entity(100, None, name="guard", )
+vampire = entity(200, None, name="vampire", damage=70, defense=70)
 
 
 def handle_move(args):
     def callback(window):
         window['-STORY-'].update(game.getCurrentLocation().story)
-    args = args[0]
 
-    if len(game.getCurrentLocation().entities) > 0:
+    if len(game.getCurrentLocation().entities) > 0 and args == game.getCurrentLocation().locked:
         return lambda window: window['-RESULT-'].update("There are still monsters you need to defeat!")
     else:
+        if args not in game.getCurrentLocation().neighbours:
+            return lambda window: window['-RESULT-'].update(f"You cannot move {args}!")
         game.currentLocation = game.getCurrentLocation().neighbours[args]
         return callback
 
@@ -106,7 +117,7 @@ def handle_move(args):
 
 
 def handle_equip(args):
-    result = game.player.equipItem(args[0])
+    result = game.player.equipItem(args)
 
     return lambda window: window['-RESULT-'].update(str(result))
 
@@ -209,7 +220,7 @@ fight_commands = {
     },
 }
 
-game = None
+game = GameManager(None, None)
 
 
 def startGame():
@@ -218,29 +229,47 @@ def startGame():
 
     gameMap = {
         "start": Location(story="Your goal is to save the princess!\nShe is being held in the evil vampire's castle.\nYou must find her, start by moving north!",
+                          commands={**non_fighting_commands, **basic_commands},
+                          locked=["north"],
                           neighbours={"north": "forest"}),
         "forest": Location("This forest seems dense, it feels like there are eyes everywhere!\n",
+                           commands={**non_fighting_commands,
+                                     **basic_commands},
+                           locked=["north"],
                            entities=[goblin],
                            neighbours={"north": "castle",
-                                       "east" : "big tree",
+                                       "east": "big tree",
                                        "south": "start"}),
         "big tree": Location(story="This tree is massive, there might be some items around here!",
+                             commands={**non_fighting_commands,
+                                       **basic_commands},
+                             locked=["north"],
                              neighbours={"west": "forest"}),
         "castle": Location(story="This castle seems old and dusty, hopefully the princess is near!\n",
+                           commands={**non_fighting_commands,
+                                     **basic_commands},
                            entities=[guard],
+                           locked=["north"],
                            neighbours={"north": "throne room",
                                        "west": "dungeon",
                                        "south": "forest"}),
         "dungeon": Location(story="The princess must be in here!\nIf only I had the key!",
+                            commands={**non_fighting_commands,
+                                      **basic_commands},
+                            locked=["north"],
                             neighbours={"east": "castle"}),
         "throne room": Location("There's the vampire you must defeat him!",
+                                commands={**non_fighting_commands,
+                                          **basic_commands},
                                 entities=[vampire],
+                                locked=["north"],
                                 neighbours={"south": "castle"}),
     }
 
-# ------------ Player Instance ----------
+    # ------------ Player Instance ----------
 
     playerInv = Inventory(
         [])
     player = entity(200, playerInv)
-    game = GameManager(player, gameMap)
+    game.player = player
+    game.map = gameMap

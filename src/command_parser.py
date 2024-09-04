@@ -11,6 +11,8 @@ def parse_command(command):
         args = args[0]
     else:
         args = None
-    return game.getCurrentLocation().commands[action](args)
+    if args == "help":
+        return lambda window: window['-RESULT-'].update(f"Usage: {game.getCurrentLocation().commands[action]['help']}")
+    return game.getCurrentLocation().commands[action]["callback"](args)
 
 
