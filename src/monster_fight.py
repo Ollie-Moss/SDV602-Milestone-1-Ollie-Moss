@@ -14,14 +14,14 @@ class entity:
         self.drops = drops
 
     def take_damage(self, dmg):
-        damage = dmg - self.stats["dmg"]
+        damage = dmg - self.stats["defense"]
         damage = damage if damage > 0 else 0
         self.stats["health"] -= damage 
         return damage
 
     def deal_damage(self, target):
         if type(target) == entity:
-            target.take_damage(self.stats["damage"])
+            return target.take_damage(self.stats["damage"])
         else:
             print(
                 f"Could not deal damage")

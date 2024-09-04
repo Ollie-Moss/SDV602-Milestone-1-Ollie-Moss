@@ -66,9 +66,16 @@ if __name__ == "__main__":
             result = parse_command(values['-IN-'])
             if (callable(result)):
                 result(window)
+
+            window['-STORY-'].update(game.getCurrentLocation().story)
+            commands = ''.join(
+                f"{command} " for command in game.getCurrentLocation().commands.keys())
+            window['-COMMANDS-'].update(commands)
+
             if result == "RESTART":
                 game = startGame()
                 resetWindow(window)
+
 
             pass
         elif event == 'Exit' or event is None or event == sg.WIN_CLOSED:

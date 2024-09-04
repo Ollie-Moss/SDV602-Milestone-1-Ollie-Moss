@@ -77,7 +77,7 @@ def useStatIncreaseCallback(item, entity, consumed=True, increased=True):
 
 # ---- Weapons ----
 
-sword = Item("sword", "weapon", {"damage": 35}, equip=equipCallback)
+sword = Item("sword", "weapon", {"damage": 3000}, equip=equipCallback)
 poison_tipped_sword = Item("poison-tipped-sword",
                            "weapon", {"damage": 100}, equip=equipCallback)
 
@@ -97,7 +97,6 @@ strength_potion = Item("strength-potion", "potion",
                        {"damage": 25}, use=useStatIncreaseCallback)
 
 # Food
-grapes = Item("grapes", "food", {"health": 25}, use=useStatIncreaseCallback)
 bread_loaf = Item("bread-loaf", "food",
                   {"health": 30}, use=useStatIncreaseCallback)
 
@@ -123,7 +122,7 @@ def handle_move(args):
         return False
 
     def callback(window):
-        window['-STORY-'].update(game.getCurrentLocation().story)
+        window['-RESULT-'].update(f"You moved {args}!")
 
     if len(game.getCurrentLocation().entities) > 0 and args in game.getCurrentLocation().locked:
         result = "There are still monsters you need to defeat!\n"
@@ -136,7 +135,6 @@ def handle_move(args):
         game.currentLocation = game.getCurrentLocation().neighbours[args]
         return callback
 
-    print("Usage: move [direction]")
 
 
 def handle_equip(args):
@@ -181,9 +179,6 @@ def handle_fight(args):
                                                   **basic_commands}
 
             def startFight(window):
-                commands = ''.join(
-                    f"{command} " for command in game.getCurrentLocation().commands.keys())
-                window['-COMMANDS-'].update(commands)
                 window['-RESULT-'].update(f"Fighting {entity.name}")
 
             return startFight
@@ -195,12 +190,12 @@ def handle_attack(args):
         return lambda window: window['-RESULT-'].update("Not in a fight!")
 
     playerDamageDealt = game.player.deal_damage(enemy)
-    result = f"{game.player.name} hit {enemy.name} for {playerDamageDealt}!"
-    result += f"{enemy.name} has {enemy.stats['health']} health remaining"
+    result = f"{game.player.name} hit {enemy.name} for {playerDamageDealt}!\n"
+    result += f"{enemy.name} has {enemy.stats['health']} health remaining\n"
 
     enemyDamageDealt = enemy.deal_damage(game.player)
-    result += f"{enemy.name} hit {game.player.name} for {enemyDamageDealt}!"
-    result += f"{game.player.name} has {game.player.stats['health']} health remaining"
+    result += f"{enemy.name} hit {game.player.name} for {enemyDamageDealt}!\n"
+    result += f"{game.player.name} has {game.player.stats['health']} health remaining\n"
 
     if game.player.stats["health"] <= 0:
         return "RESTART"
@@ -317,7 +312,7 @@ def startGame():
     gameMap = {
         "start": Location(story="Your goal is to save the princess!\nShe is being held in the evil vampire's castle.\nYou must find her, start by exploring you might find something!",
                           commands={**non_fighting_commands, **basic_commands},
-                          items=[InventoryItem(sword)],
+                          items=[InventoryItem(sword), InventoryItem(bread_loaf, 2)],
                           locked=["north"],
                           neighbours={"north": "forest"}),
         "forest": Location("This forest seems dense\n It feels like there are eyes everywhere!",
@@ -331,7 +326,7 @@ def startGame():
         "big tree": Location(story="This tree is massive, there might be some items around here!",
                              commands={**non_fighting_commands,
                                        **basic_commands},
-                             items=[InventoryItem(health_potion, 5)],
+                             items=[InventoryItem(health_potion, 5), InventoryItem(shield)],
                              locked=["north"],
                              neighbours={"west": "forest"}),
         "castle": Location(story="This castle seems old and dusty, hopefully the princess is near!\n",
@@ -360,7 +355,7 @@ def startGame():
     # ------------ Player Instance ----------
 
     playerInv = Inventory(
-        [InventoryItem(sword), InventoryItem(grapes, 12)])
+        [])
     player = entity(200, playerInv, name="player")
     game.player = player
     game.map = gameMap
