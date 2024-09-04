@@ -2,9 +2,20 @@ from monster_fight import *
 from inventory import *
 from command_parser import *
 
+# Comes from https://stackoverflow.com/questions/6760685/what-is-the-best-way-of-implementing-singleton-in-python
+
+
+def singleton(class_):
+    instances = {}
+
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
+    return getinstance
+
+
 # ---------------- Model classes ---------
-
-
 class GameManager:
     def __init__(self, player, map):
         self.player = player
@@ -19,11 +30,13 @@ class GameManager:
 
 
 class Location:
-    def __init__(self, story, entities, commands, neighbours):
+    def __init__(self, story, entities=[], commands={}, neighbours={}, locked=[]):
         self.story = story
+        self.items = items
         self.entities = entities
         self.commands = commands
         self.neighbours = neighbours
+        self.locked = locked
 
 # ----------- Item Instances -------------
 
@@ -49,13 +62,15 @@ def useStatIncreaseCallback(item, entity):
 
 # ---- Weapons ----
 
-sword = Item("sword", "weapon", {"damage": 30}, equip=equipCallback)
-bow = Item("bow", "weapon", {"damage": 15}, equip=equipCallback)
+sword = Item("sword", "weapon", {"damage": 35}, equip=equipCallback)
+poison_tipped_sword = Item("poison-tipped-sword",
+                           "weapon", {"damage": 100}, equip=equipCallback)
 
 # ---- Armor ----
 shield = Item("Shield", "armor", {"defense": 20})
 
-helmet = Item("helmet", "armor", {"defense": 30})
+helmet = Item("helmet", "chest-piece", {"defense": 35})
+chestplaye = Item("chestplate", "chest-piece", {"defense": 40})
 
 # ---- Buff/De-Buffs ----
 
@@ -120,9 +135,10 @@ def handle_fight(args):
             game.fight["enemy"] = entity
 
         game.getCurrentLocation().commands = fightCommands
+
         def startFight(window):
             commands = [list(map(lambda command: sg.Text(f"{command}", font="Any 12", background_color="#FFFFFF", text_color="#000000"),
-                   game.getCurrentLocation().commands.keys()))]
+                                 game.getCurrentLocation().commands.keys()))]
             window['-COMMANDS-'].update(commands)
             window['-RESULT-'].update(f"Fighting {entity.name}")
 
@@ -138,58 +154,93 @@ def handle_attack(args):
     return lambda window: window['-RESULT-'].update(f"Hit {enemy.name}")
 
 
-def handle_heal(args):
-    pass
-
-
 def handle_run(args):
 
     pass
 
 
-basicCommands = {
-    "move": handle_move,
-    "equip": handle_equip,
-    "use": handle_use,
-    "inventory": handle_inventory,
-    "stats": handle_stats,
-    "fight": handle_fight
+def handle_explore(args):
+
+    pass
+
+
+non_fighting_commands = {
+    "move": {
+        "callback": handle_move,
+        "help": "move [direction]"
+    },
+    "fight": {
+        "callback": handle_fight,
+        "help": "fight [monster]"
+    },
 }
 
-fightCommands = {
-    "attack": handle_attack,
-    "heal": handle_heal,
-    "run": handle_run
+basic_commands = {
+    "fight": {
+        "callback": handle_fight,
+        "help": "fight [monster]"
+    },
+    "use": {
+        "callback": handle_use,
+        "help": "fight [monster]"
+    },
+    "inventory": {
+        "callback": handle_inventory,
+        "help": "inventory"
+    },
+    "stats": {
+        "callback": handle_stats,
+        "help": "stats or stats [item]"
+    },
+    "explore": {
+        "callback": handle_explore,
+        "help": "explore"
+    },
 }
 
-# ---------- Map ---------------
-
-gameMap = {
-    "start": Location("Your goal is to save the princess!\nShe is being held in the evil vampire's castle.\nYou must find her, start by moving north!",
-                      [],
-                      basicCommands,
-                      {"north": "forest"}),
-    "forest": Location("This forest seems dense, it feels like there are eyes everywhere!\n",
-                       [goblin],
-                       basicCommands,
-                       {"north": "castle",
-                        "south": "start"}),
-    "castle": Location("This castle seems old and dusty, hopefully the princess is near!\n",
-                       [guard],
-                       basicCommands,
-                       {"north": "throne room",
-                        "south": "forest"}),
-    "throne room": Location("Ahhhh a vampire he scary!",
-                            [vampire],
-                            basicCommands,
-                            {"north": "end",
-                                "south": "castle"}),
-    "end": Location("You Win!", [], {}, {})
+fight_commands = {
+    "attack": {
+        "callback": handle_attack,
+        "help": "attack"
+    },
+    "stats": {
+        "callback": handle_run,
+        "help": "run"
+    },
 }
+
+game = None
+
+
+def startGame():
+
+    # ---------- Map ---------------
+
+    gameMap = {
+        "start": Location(story="Your goal is to save the princess!\nShe is being held in the evil vampire's castle.\nYou must find her, start by moving north!",
+                          neighbours={"north": "forest"}),
+        "forest": Location("This forest seems dense, it feels like there are eyes everywhere!\n",
+                           entities=[goblin],
+                           neighbours={"north": "castle",
+                                       "east" : "big tree",
+                                       "south": "start"}),
+        "big tree": Location(story="This tree is massive, there might be some items around here!",
+                             neighbours={"west": "forest"}),
+        "castle": Location(story="This castle seems old and dusty, hopefully the princess is near!\n",
+                           entities=[guard],
+                           neighbours={"north": "throne room",
+                                       "west": "dungeon",
+                                       "south": "forest"}),
+        "dungeon": Location(story="The princess must be in here!\nIf only I had the key!",
+                            neighbours={"east": "castle"}),
+        "throne room": Location("There's the vampire you must defeat him!",
+                                entities=[vampire],
+                                neighbours={"south": "castle"}),
+    }
 
 # ------------ Player Instance ----------
 
-playerInv = Inventory(
-    [InventoryItem(sword), InventoryItem(helmet), InventoryItem(grapes, 12), InventoryItem(bread_loaf, 3)])
-player = entity(100, playerInv)
-game = GameManager(player, gameMap)
+    playerInv = Inventory(
+        [])
+    player = entity(200, playerInv)
+    game = GameManager(player, gameMap)

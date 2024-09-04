@@ -27,8 +27,8 @@ def make_a_window():
         element_justification='r'
     )
 
-    commands = [list(map(lambda command: sg.Text(f"{command}", font="Any 12", background_color="#FFFFFF", text_color="#000000"),
-                   game.getCurrentLocation().commands.keys()))]
+    commands = ''.join(
+        f"{command} " for command in game.getCurrentLocation().commands.keys())
 
     layout = [
         [sg.Text("Story:", font="Any 12")],
@@ -36,13 +36,18 @@ def make_a_window():
                  size=(100, 5), font='Any 12', key='-STORY-')],
         [sg.Text("Output:", font="Any 12")],
         [sg.Text("",
-                 size=(100, 4), background_color="#FFFFFF", text_color="#000000", font="Any 12", key='-RESULT-')],
+                 size=(100, 7), background_color="#FFFFFF", text_color="#000000", font="Any 12", key='-RESULT-')],
         [sg.Text("", size=(100, 4), font="Any 12", key='-PLAYERSTATS-')],
-        [sg.Text("Available Commands:", font="Any 12")],
-        [sg.Column(layout=commands, key="-COMMANDS-")],
+        [sg.Text("Available Commands:", font="Any 12"), sg.Text("Type help after any command to see how to use it!")],
+        [sg.Text(commands, font="Any 12", background_color="#FFFFFF",
+                 text_color="#000000", key="-COMMANDS-")],
         [command_col]]
 
     return sg.Window('Adventure Game', layout, size=(500, 500))
+
+
+def resetWindow(window):
+    pass
 
 
 if __name__ == "__main__":
@@ -52,6 +57,7 @@ if __name__ == "__main__":
     # print(show_current_place())
 
     # A persisent window - stays until "Exit" is pressed
+    startGame()
     window = make_a_window()
     while True:
         event, values = window.read()
@@ -60,6 +66,9 @@ if __name__ == "__main__":
             result = parse_command(values['-IN-'])
             if (callable(result)):
                 result(window)
+            if result == "RESTART":
+                game = startGame()
+                resetWindow(window)
 
             pass
         elif event == 'Exit' or event is None or event == sg.WIN_CLOSED:

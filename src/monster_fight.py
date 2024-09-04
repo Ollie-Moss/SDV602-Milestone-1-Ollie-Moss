@@ -11,15 +11,17 @@ class entity:
         self.name = name
 
     def take_damage(self, dmg):
-        self.stats["health"] -= dmg
+        damage = dmg - self.stats["dmg"]
+        damage = damage if damage > 0 else 0
+        self.stats["health"] -= damage 
+        return damage
 
     def deal_damage(self, target):
-        if self.heldItem and type(target) == entity:
-            target.take_damage(self.heldItem.stats["damage"])
+        if type(target) == entity:
+            target.take_damage(self.stats["damage"])
         else:
-            # Error Message!
             print(
-                f"Could not deal damage\nHeld Item: {self.heldItem}")
+                f"Could not deal damage")
 
     def equipItem(self, item):
         itemIndex = self.inventory.find_item(item)

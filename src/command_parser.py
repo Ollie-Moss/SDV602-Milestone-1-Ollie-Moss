@@ -7,6 +7,10 @@ def parse_command(command):
     if action not in game.getCurrentLocation().commands:
         return
     args = command[1:]
+    if len(args) > 0:
+        args = args[0]
+    else:
+        args = None
     return game.getCurrentLocation().commands[action](args)
 
 
