@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 from model import *
 
+
 def parse_command(command):
     command = command.lower().split(' ')
     action = command[0]
@@ -13,6 +14,8 @@ def parse_command(command):
         args = None
     if args == "help":
         return lambda window: window['-RESULT-'].update(f"Usage: {game.getCurrentLocation().commands[action]['help']}")
-    return game.getCurrentLocation().commands[action]["callback"](args)
 
-
+    result = game.getCurrentLocation().commands[action]["callback"](args)
+    if not result:
+        return lambda window: window['-RESULT-'].update(f"Usage: {game.getCurrentLocation().commands[action]['help']}")
+    return result

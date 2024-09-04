@@ -43,7 +43,7 @@ def make_a_window():
                  text_color="#000000", key="-COMMANDS-")],
         [command_col]]
 
-    return sg.Window('Adventure Game', layout, size=(500, 500))
+    return sg.Window('Adventure Game', layout, size=(700, 600))
 
 
 def resetWindow(window):

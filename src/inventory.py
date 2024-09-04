@@ -1,10 +1,11 @@
 class Item:
-    def __init__(self, name, itemType, stats, use=lambda: "No use callback", equip=lambda: "No equip callback"):
+    def __init__(self, name, itemType, stats, use=None, equip=None):
         self.name = name
         self.itemType = itemType
         self.stats = stats
         self.use = use
         self.equip = equip
+        self.equipped = False
 
 
 class InventoryItem(Item):
@@ -20,11 +21,11 @@ class Inventory:
         else:
             self.items = []
 
-    def add_item(self, item, quantity):
+    def add_item(self, item):
         if self.find_item(item) == -1:
-            self.items.append(InventoryItem(item, quantity))
+            self.items.append(item)
         else:
-            self.items[self.find_item(item)].quantity += quantity
+            self.items[self.find_item(item.name)].quantity += quantity
 
     def remove_item(self, item, quantity):
         itemIndex = self.find_item(item)
@@ -47,7 +48,7 @@ class Inventory:
     def display_items(self):
         result = ""
         for item in self.items:
-            result += f"{item.name} x{item.quantity}\n"
+            result += f"{item.name} x{item.quantity} {('Equipped' if item.equipped else 'Not Equipped!') if item.equip else ''}\n"
         return result
 
 

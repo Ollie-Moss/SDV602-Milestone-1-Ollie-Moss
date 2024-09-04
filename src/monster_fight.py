@@ -2,13 +2,16 @@ import inventory as inv
 
 
 class entity:
-    def __init__(self, health, inventory, name=None):
+    def __init__(self, health, inventory, name=None, defense=0, damage=10, drops=[]):
         self.stats = {
-            "health": health
+            "health": health,
+            "defense": defense,
+            "damage": damage
         }
         self.heldItem = None
         self.inventory = inventory
         self.name = name
+        self.drops = drops
 
     def take_damage(self, dmg):
         damage = dmg - self.stats["dmg"]
